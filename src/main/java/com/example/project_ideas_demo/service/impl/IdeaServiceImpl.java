@@ -12,13 +12,14 @@ import com.example.project_ideas_demo.repository.CommentRepository;
 import com.example.project_ideas_demo.repository.IdeaRepository;
 import com.example.project_ideas_demo.service.IdeaService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,10 +31,10 @@ public class IdeaServiceImpl implements IdeaService {
     private final CommentMapper commentMapper;
 
     @Override
-    public List<IdeaDto> getAllIdeas() {
-        return ideaRepository.findAll().stream()
-                .map(ideaMapper::mapToDto)
-                .toList();
+    @Transactional(readOnly = true)
+    public Page<IdeaDto> getAllIdeas(Pageable pageable) {
+        return ideaRepository.findAll(pageable)
+                .map(ideaMapper::mapToDto);
     }
 
     @Override
@@ -53,12 +54,16 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     @Override
+    @Transactional
     public CommentDto addComment(Long ideaId, CreateCommentCommand command) {
-        Idea idea = ideaRepository.findById(ideaId).orElseThrow(() -> new EntityNotFoundException(MessageFormat
-                .format("Person with id={0} not found: ", ideaId)));
-        Comment comment = commentRepository.save(commentMapper.mapFromCommand(command));
+        Idea idea = ideaRepository.findWithLockingById(ideaId)
+                .orElseThrow(() -> new EntityNotFoundException(MessageFormat.format("Idea with id={0} not found", ideaId)));
+
+        Comment comment = commentMapper.mapFromCommand(command);
         comment.setIdea(idea);
         comment.setCreatedAt(LocalDateTime.now());
-        return commentMapper.mapToDto(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        return commentMapper.mapToDto(savedComment);
     }
 }

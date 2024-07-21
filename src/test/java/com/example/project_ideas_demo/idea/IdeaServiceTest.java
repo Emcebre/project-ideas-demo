@@ -17,6 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,20 +50,31 @@ public class IdeaServiceTest {
     private IdeaServiceImpl ideaService;
 
     @Test
-    void getAllIdeas_ShouldReturnAllIdeas() {
+    void getAllIdeas_ShouldReturnPagedIdeas() {
         // given
-        Idea idea = new Idea();
-        when(ideaRepository.findAll()).thenReturn(List.of(idea));
-        IdeaDto ideaDto = new IdeaDto();
-        when(ideaMapper.mapToDto(idea)).thenReturn(ideaDto);
+        Idea idea1 = new Idea();
+        Idea idea2 = new Idea();
+        List<Idea> ideas = List.of(idea1, idea2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Idea> page = new PageImpl<>(ideas, pageable, ideas.size());
+        IdeaDto ideaDto1 = new IdeaDto();
+        IdeaDto ideaDto2 = new IdeaDto();
+        List<IdeaDto> ideaDtos = List.of(ideaDto1, ideaDto2);
+
+        when(ideaRepository.findAll(pageable)).thenReturn(page);
+        when(ideaMapper.mapToDto(idea1)).thenReturn(ideaDto1);
+        when(ideaMapper.mapToDto(idea2)).thenReturn(ideaDto2);
 
         // when
-        List<IdeaDto> result = ideaService.getAllIdeas();
+        Page<IdeaDto> result = ideaService.getAllIdeas(pageable);
 
         // then
-        assertEquals(1, result.size());
-        assertEquals(ideaDto, result.get(0));
-        verify(ideaRepository).findAll();
+        assertEquals(2, result.getContent().size());
+        assertEquals(ideaDtos, result.getContent());
+        assertEquals(2, result.getTotalElements());
+        assertEquals(0, result.getNumber());
+        assertEquals(2, result.getSize());
+        verify(ideaRepository).findAll(pageable);
     }
 
     @Test

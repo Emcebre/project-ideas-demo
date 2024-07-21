@@ -8,38 +8,45 @@ import com.example.project_ideas_demo.repository.DemoProjectRepository;
 import com.example.project_ideas_demo.service.DemoProjectService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.MessageFormat;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DemoProjectServiceImpl implements DemoProjectService {
 
-    private final DemoProjectRepository projectRepository;
     private final DemoProjectMapper demoProjectMapper;
     private final DemoProjectRepository demoProjectRepository;
 
-    @Override public List<DemoProjectDto> getAllProjects() {
-        return projectRepository.findAll().stream()
-                .map(demoProjectMapper::mapToDto)
-                .toList();
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DemoProjectDto> getAllProjects(Pageable pageable) {
+        return demoProjectRepository.findAll(pageable)
+                .map(demoProjectMapper::mapToDto);
     }
 
-    @Override public DemoProjectDto createProject(CreateDemoProjectCommand command) {
+    @Override
+    public DemoProjectDto createProject(CreateDemoProjectCommand command) {
         DemoProject demoProject = demoProjectRepository.save(demoProjectMapper.mapFromCommand(command));
         return demoProjectMapper.mapToDto(demoProject);
     }
 
-    @Override public DemoProjectDto getProjectById(Long id) {
-        DemoProject demoProject = projectRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(MessageFormat
+    @Override
+    @Transactional(readOnly = true)
+    public DemoProjectDto getProjectById(Long id) {
+        DemoProject demoProject = demoProjectRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(MessageFormat
                 .format("Project with id={0} not found: ", id)));
         return demoProjectMapper.mapToDto(demoProject);
     }
 
-    @Override public DemoProjectDto updateProject(Long id, DemoProject projectDetails) {
-        DemoProject project = demoProjectRepository.findById(id)
+    @Override
+    @Transactional
+    public DemoProjectDto updateProject(Long id, DemoProject projectDetails) {
+        DemoProject project = demoProjectRepository.findWithLockingById(id)
                         .orElseThrow(() -> new EntityNotFoundException(MessageFormat
                                 .format("Project with id={0} not found: ", id)));
         project.setName(projectDetails.getName());

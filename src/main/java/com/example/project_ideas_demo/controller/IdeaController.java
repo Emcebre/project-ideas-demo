@@ -7,6 +7,8 @@ import com.example.project_ideas_demo.model.dto.IdeaDto;
 import com.example.project_ideas_demo.service.IdeaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/projects/ideas")
 @RequiredArgsConstructor
@@ -27,8 +27,8 @@ public class IdeaController {
     private final IdeaService ideaService;
 
     @GetMapping
-    public List<IdeaDto> getAllIdeas() {
-        return ideaService.getAllIdeas();
+    public Page<IdeaDto> getAllIdeas(Pageable pageable) {
+        return ideaService.getAllIdeas(pageable);
     }
 
     @PostMapping

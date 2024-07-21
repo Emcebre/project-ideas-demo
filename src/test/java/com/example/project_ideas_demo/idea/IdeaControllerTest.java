@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,17 +47,25 @@ public class IdeaControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void getAllIdeas_ShouldReturnAllIdeas() throws Exception {
+    void getAllIdeas_ShouldReturnPagedIdeas() throws Exception {
         // given
-        IdeaDto ideaDto = new IdeaDto();
-        when(ideaServiceImpl.getAllIdeas()).thenReturn(List.of(ideaDto));
+        IdeaDto ideaDto1 = new IdeaDto();
+        IdeaDto ideaDto2 = new IdeaDto();
+        List<IdeaDto> ideaDtos = List.of(ideaDto1, ideaDto2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<IdeaDto> page = new PageImpl<>(ideaDtos, pageable, ideaDtos.size());
+
+        when(ideaServiceImpl.getAllIdeas(pageable)).thenReturn(page);
 
         // when / then
-        mockMvc.perform(get("/api/projects/ideas"))
+        mockMvc.perform(get("/api/projects/ideas?page=0&size=2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.size", is(2)));
 
-        verify(ideaServiceImpl).getAllIdeas();
+        verify(ideaServiceImpl).getAllIdeas(pageable);
     }
 
     @Test

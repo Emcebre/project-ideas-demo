@@ -12,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,20 +39,31 @@ public class DemoProjectServiceTest {
     private DemoProjectServiceImpl projectService;
 
     @Test
-    void getAllProjects_ShouldReturnAllProjects() {
+    void getAllProjects_ShouldReturnPagedProjects() {
         // given
-        DemoProject project = new DemoProject();
-        when(projectRepository.findAll()).thenReturn(List.of(project));
-        DemoProjectDto projectDto = new DemoProjectDto();
-        when(demoProjectMapper.mapToDto(project)).thenReturn(projectDto);
+        DemoProject project1 = new DemoProject();
+        DemoProject project2 = new DemoProject();
+        List<DemoProject> projects = List.of(project1, project2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<DemoProject> page = new PageImpl<>(projects, pageable, projects.size());
+        DemoProjectDto projectDto1 = new DemoProjectDto();
+        DemoProjectDto projectDto2 = new DemoProjectDto();
+        List<DemoProjectDto> projectDtos = List.of(projectDto1, projectDto2);
+
+        when(projectRepository.findAll(pageable)).thenReturn(page);
+        when(demoProjectMapper.mapToDto(project1)).thenReturn(projectDto1);
+        when(demoProjectMapper.mapToDto(project2)).thenReturn(projectDto2);
 
         // when
-        List<DemoProjectDto> result = projectService.getAllProjects();
+        Page<DemoProjectDto> result = projectService.getAllProjects(pageable);
 
         // then
-        assertEquals(1, result.size());
-        assertEquals(projectDto, result.get(0));
-        verify(projectRepository).findAll();
+        assertEquals(2, result.getContent().size());
+        assertEquals(projectDtos, result.getContent());
+        assertEquals(2, result.getTotalElements());
+        assertEquals(0, result.getNumber());
+        assertEquals(2, result.getSize());
+        verify(projectRepository).findAll(pageable);
     }
 
     @Test

@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,18 +46,27 @@ public class DemoProjectControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
     @Test
-    void getAllProjects_ShouldReturnAllProjects() throws Exception {
+    void getAllProjects_ShouldReturnPagedProjects() throws Exception {
         // given
-        DemoProjectDto projectDto = new DemoProjectDto();
-        when(demoProjectServiceImpl.getAllProjects()).thenReturn(List.of(projectDto));
+        DemoProjectDto projectDto1 = new DemoProjectDto();
+        DemoProjectDto projectDto2 = new DemoProjectDto();
+        List<DemoProjectDto> projectDtos = List.of(projectDto1, projectDto2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<DemoProjectDto> page = new PageImpl<>(projectDtos, pageable, projectDtos.size());
+
+        when(demoProjectServiceImpl.getAllProjects(pageable)).thenReturn(page);
 
         // when / then
-        mockMvc.perform(get("/api/projects"))
+        mockMvc.perform(get("/api/projects?page=0&size=2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.size", is(2)));
 
-        verify(demoProjectServiceImpl).getAllProjects();
+        verify(demoProjectServiceImpl).getAllProjects(pageable);
     }
 
     @Test
