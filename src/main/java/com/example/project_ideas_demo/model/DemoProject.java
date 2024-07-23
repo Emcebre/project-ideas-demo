@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,7 @@ public class DemoProject {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<Idea> ideas;
+
+    @Version
+    private Long version;
 }

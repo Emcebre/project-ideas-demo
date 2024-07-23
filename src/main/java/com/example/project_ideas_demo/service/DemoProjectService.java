@@ -2,6 +2,7 @@ package com.example.project_ideas_demo.service;
 
 import com.example.project_ideas_demo.model.DemoProject;
 import com.example.project_ideas_demo.model.command.CreateDemoProjectCommand;
+import com.example.project_ideas_demo.model.command.UpdatedDemoProjectCommand;
 import com.example.project_ideas_demo.model.dto.DemoProjectDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,5 +14,5 @@ public interface DemoProjectService {
 
     DemoProjectDto getProjectById(Long id);
 
-    DemoProjectDto updateProject(Long id, DemoProject projectDetails);
+    DemoProjectDto updateProject(Long id, UpdatedDemoProjectCommand updatedDemoProjectCommand);
 }

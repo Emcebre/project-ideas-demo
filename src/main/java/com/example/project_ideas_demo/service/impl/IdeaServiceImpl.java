@@ -54,9 +54,8 @@ public class IdeaServiceImpl implements IdeaService {
     }
 
     @Override
-    @Transactional
     public CommentDto addComment(Long ideaId, CreateCommentCommand command) {
-        Idea idea = ideaRepository.findWithLockingById(ideaId)
+        Idea idea = ideaRepository.findById(ideaId)
                 .orElseThrow(() -> new EntityNotFoundException(MessageFormat.format("Idea with id={0} not found", ideaId)));
 
         Comment comment = commentMapper.mapFromCommand(command);

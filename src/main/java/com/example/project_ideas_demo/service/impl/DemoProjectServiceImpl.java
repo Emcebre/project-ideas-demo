@@ -3,6 +3,7 @@ package com.example.project_ideas_demo.service.impl;
 import com.example.project_ideas_demo.mapper.DemoProjectMapper;
 import com.example.project_ideas_demo.model.DemoProject;
 import com.example.project_ideas_demo.model.command.CreateDemoProjectCommand;
+import com.example.project_ideas_demo.model.command.UpdatedDemoProjectCommand;
 import com.example.project_ideas_demo.model.dto.DemoProjectDto;
 import com.example.project_ideas_demo.repository.DemoProjectRepository;
 import com.example.project_ideas_demo.service.DemoProjectService;
@@ -45,12 +46,13 @@ public class DemoProjectServiceImpl implements DemoProjectService {
 
     @Override
     @Transactional
-    public DemoProjectDto updateProject(Long id, DemoProject projectDetails) {
-        DemoProject project = demoProjectRepository.findWithLockingById(id)
-                        .orElseThrow(() -> new EntityNotFoundException(MessageFormat
-                                .format("Project with id={0} not found: ", id)));
-        project.setName(projectDetails.getName());
-        project.setDescription(projectDetails.getDescription());
+    public DemoProjectDto updateProject(Long id, UpdatedDemoProjectCommand updatedDemoProjectCommand) {
+        DemoProject project = demoProjectRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(MessageFormat
+                        .format("Project with id={0} not found: ", id)));
+
+        project.setName(updatedDemoProjectCommand.getName());
+        project.setDescription(updatedDemoProjectCommand.getDescription());
 
         DemoProject updatedProject = demoProjectRepository.save(project);
         return demoProjectMapper.mapToDto(updatedProject);

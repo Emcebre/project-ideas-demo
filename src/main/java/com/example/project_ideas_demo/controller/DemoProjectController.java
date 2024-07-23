@@ -2,6 +2,7 @@ package com.example.project_ideas_demo.controller;
 
 import com.example.project_ideas_demo.model.DemoProject;
 import com.example.project_ideas_demo.model.command.CreateDemoProjectCommand;
+import com.example.project_ideas_demo.model.command.UpdatedDemoProjectCommand;
 import com.example.project_ideas_demo.model.dto.DemoProjectDto;
 import com.example.project_ideas_demo.service.DemoProjectService;
 import jakarta.validation.Valid;
@@ -44,8 +45,8 @@ public class DemoProjectController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DemoProjectDto> updateProject(@PathVariable Long id, @RequestBody DemoProject projectDetails) {
-        DemoProjectDto demoProjectDto = projectService.updateProject(id, projectDetails);
+    public ResponseEntity<DemoProjectDto> updateProject(@PathVariable Long id, @RequestBody UpdatedDemoProjectCommand updatedDemoProjectCommand) {
+        DemoProjectDto demoProjectDto = projectService.updateProject(id, updatedDemoProjectCommand);
         return ResponseEntity.ok(demoProjectDto);
     }
 }

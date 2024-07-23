@@ -3,6 +3,7 @@ package com.example.project_ideas_demo.demoProject;
 import com.example.project_ideas_demo.mapper.DemoProjectMapper;
 import com.example.project_ideas_demo.model.DemoProject;
 import com.example.project_ideas_demo.model.command.CreateDemoProjectCommand;
+import com.example.project_ideas_demo.model.command.UpdatedDemoProjectCommand;
 import com.example.project_ideas_demo.model.dto.DemoProjectDto;
 import com.example.project_ideas_demo.repository.DemoProjectRepository;
 import com.example.project_ideas_demo.service.impl.DemoProjectServiceImpl;
@@ -121,32 +122,38 @@ public class DemoProjectServiceTest {
         // given
         Long id = 1L;
         DemoProject project = new DemoProject();
-        DemoProject projectDetails = new DemoProject();
-        projectDetails.setName("New Name");
-        projectDetails.setDescription("New Description");
+        project.setVersion(1L);
+
+        UpdatedDemoProjectCommand updateCommand = new UpdatedDemoProjectCommand();
+        updateCommand.setName("New Name");
+        updateCommand.setDescription("New Description");
+
         when(projectRepository.findById(id)).thenReturn(Optional.of(project));
         when(projectRepository.save(project)).thenReturn(project);
         DemoProjectDto projectDto = new DemoProjectDto();
         when(demoProjectMapper.mapToDto(project)).thenReturn(projectDto);
 
         // when
-        DemoProjectDto result = projectService.updateProject(id, projectDetails);
+        DemoProjectDto result = projectService.updateProject(id, updateCommand);
 
         // then
         assertEquals(projectDto, result);
+        verify(projectRepository).findById(id);
         verify(projectRepository).save(project);
+        assertEquals("New Name", project.getName());
+        assertEquals("New Description", project.getDescription());
     }
 
     @Test
     void updateProject_ShouldThrowException_WhenNotFound() {
         // given
         Long id = 1L;
-        DemoProject projectDetails = new DemoProject();
+        UpdatedDemoProjectCommand updateCommand = new UpdatedDemoProjectCommand();
         when(projectRepository.findById(id)).thenReturn(Optional.empty());
 
         // when / then
         EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
-            projectService.updateProject(id, projectDetails);
+            projectService.updateProject(id, updateCommand);
         });
 
         assertTrue(thrown.getMessage().contains("Project with id=" + id + " not found"));
